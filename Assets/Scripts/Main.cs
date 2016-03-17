@@ -20,8 +20,13 @@ public class Main : MonoBehaviour {
 	public float asteroidSpawnPadding = 2.5f;
 	public float asteroidSpawnRate;
 
+	public GameObject leftBound;
+	public GameObject rightBound;
+
 	public AudioSource audioEnemyDeath;
 	public AudioSource audioEnemyHit;
+
+	public AudioSource audioAsteroidDestroyed;
 
 	public GUIText scoreText;
 	public int score;
@@ -60,6 +65,7 @@ public class Main : MonoBehaviour {
 			POWERUPS = go.transform;
 		}
 
+		//generic dictionary with weapontype as key
 		WeaponDictionary = new Dictionary<WeaponType, WeaponDefinition> ();
 		foreach (WeaponDefinition def in weaponDefinitions) {
 			WeaponDictionary [def.type] = def;
@@ -74,6 +80,7 @@ public class Main : MonoBehaviour {
 	}
 
 	public static WeaponDefinition GetWeaponDefinition(WeaponType wt){
+		//make sure the key exists in the dictionary and return it
 		if (WeaponDictionary.ContainsKey (wt)) {
 			return(WeaponDictionary [wt]);
 		}
@@ -86,14 +93,16 @@ public class Main : MonoBehaviour {
 
 		Vector3 pos = Vector3.zero;
 
+		//random x position
 		float xMin = Utils.camBounds.min.x+enemySpawnPadding;
 		float xMax = Utils.camBounds.max.x-enemySpawnPadding;
-
 		pos.x = Random.Range( xMin, xMax );
+
 		pos.y = Utils.camBounds.max.y + enemySpawnPadding;
 
 		go.transform.position = pos;
 		go.transform.parent = ENEMIES;
+
 		Invoke ("SpawnEnemy", enemySpawnRate);
 	}
 
@@ -105,8 +114,8 @@ public class Main : MonoBehaviour {
 
 		float xMin = Utils.camBounds.min.x+asteroidSpawnPadding;
 		float xMax = Utils.camBounds.max.x-asteroidSpawnPadding;
-
 		pos.x = Random.Range( xMin, xMax );
+
 		pos.y = Utils.camBounds.max.y + asteroidSpawnPadding;
 
 		go.transform.position = pos;
@@ -148,5 +157,9 @@ public class Main : MonoBehaviour {
 			pu.SetType (puType);
 			pu.transform.position = e.transform.position;
 		}
+	}
+
+	public void OnAsteroidDestroyed(){
+		audioAsteroidDestroyed.PlayOneShot(audioAsteroidDestroyed.clip);
 	}
 }

@@ -74,6 +74,7 @@ public class Hero : MonoBehaviour {
 
 	void OnTriggerEnter(Collider other){
 		GameObject go = Utils.FindTaggedParent (other.gameObject);
+		Debug.Log ("Hero: collision registered");
 
 		if (go != null) {
 			if (go == lastTriggerGo) {
@@ -82,9 +83,11 @@ public class Hero : MonoBehaviour {
 			lastTriggerGo = go;
 
 			if (go.tag == "Enemy") {
+				Debug.Log ("Hero: hit by Enemy");
 				shieldLevel--;
 				Destroy (go);
 			}else if (go.tag == "PowerUp") {
+				Debug.Log ("Hero: PowerUp absorbed");
 				AbsorbPowerUp (go);
 			}else {
 				print ("Triggered: " + go.name);
@@ -146,6 +149,7 @@ public class Hero : MonoBehaviour {
 			_shieldLevel = Mathf.Min (value, 4); //max value set to 4
 
 			if (value < 0) {
+				Debug.Log ("Hero: died");
 				Destroy (this.gameObject);
 				Instantiate (explosion, transform.position, transform.rotation);
 				Main.S.DelayedRestart (gameRestartDelay);

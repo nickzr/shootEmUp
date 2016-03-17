@@ -18,17 +18,19 @@ public class Asteroid : MonoBehaviour {
 
 	void OnCollisionEnter( Collision other ) {
 		GameObject go = other.gameObject;
+		Debug.Log ("Asteroid: collision registered");
 
-		switch (go.tag) {
-		case "ProjectileHero":
-			Projectile p = go.GetComponent<Projectile> ();
+		//Instantiate (explosion, transform.position, transform.rotation);
 
+		if(go.tag == "ProjectileHero"){
+			Debug.Log ("Asteroid: hit by projectile hero");
 			Main.S.AddScore (score);
-			Destroy (this.gameObject);
+			Main.S.OnAsteroidDestroyed ();
+
 			Instantiate (explosion, transform.position, transform.rotation);
 
 			Destroy (go);
-			break;
+			Destroy (this.gameObject);
 		}
 	}
 

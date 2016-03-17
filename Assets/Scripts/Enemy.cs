@@ -76,10 +76,12 @@ public class Enemy : MonoBehaviour {
 
 	void OnCollisionEnter( Collision other ) {
 		GameObject go = other.gameObject;
+		Debug.Log ("Enemy: collision registered");
 
 		switch (go.tag) {
 		case "ProjectileHero":
 			Projectile p = go.GetComponent<Projectile> ();
+			Debug.Log ("Enemy: collision with projectile hero OK");
 			// Enemies don't take damage unless they're onscreen
 			// This stops the player from shooting them before they are visible
 			bounds.center = transform.position + boundsCenterOffset;
@@ -94,6 +96,7 @@ public class Enemy : MonoBehaviour {
 			// Get the damage amount from the Projectile.type & Main.W_DEFS
 			health -= Main.WeaponDictionary [p.type].damageOnHit;
 			if (health <= 0) {
+				Debug.Log ("Enemy: died");
 				// Destroy this Enemy
 				Main.S.OnEnemyDeath (this);
 				Main.S.AddScore (score);
