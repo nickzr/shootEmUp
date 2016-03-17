@@ -2,10 +2,9 @@
 using System.Collections;
 
 public class Enemy : MonoBehaviour {
-
 	public float speed = 10f; 
 	public float fireRate = 0.3f; 
-	public float health = 1;
+	public float health = 2;
 	public int score = 100;
 	public float powerUpDropChance = 1f;
 
@@ -17,6 +16,8 @@ public class Enemy : MonoBehaviour {
 
 	public Bounds bounds; 
 	public Vector3 boundsCenterOffset; 
+
+	public GameObject explosion;
 
 	void Awake() {
 		materials = Utils.GetAllMaterials( gameObject );
@@ -91,11 +92,13 @@ public class Enemy : MonoBehaviour {
 			ShowDamage ();
 			Main.S.OnEnemyHit ();
 			// Get the damage amount from the Projectile.type & Main.W_DEFS
-			health -= Main.W_DEFS [p.type].damageOnHit;
+			health -= Main.WeaponDictionary [p.type].damageOnHit;
 			if (health <= 0) {
 				// Destroy this Enemy
 				Main.S.OnEnemyDeath (this);
+				Main.S.AddScore (score);
 				Destroy (this.gameObject);
+				Instantiate (explosion, transform.position, transform.rotation);
 			}
 			Destroy (go);
 			break;

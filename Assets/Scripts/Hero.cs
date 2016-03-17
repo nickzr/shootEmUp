@@ -8,7 +8,8 @@ public class Hero : MonoBehaviour {
 	[SerializeField]
 	private float _shieldLevel = 1;
 
-	public Weapon[] weapons;
+	//public Weapon[] weapons;
+	public Weapon weapon;
 
 	public float speed = 30;
 	public float rollMult = -45;
@@ -19,6 +20,8 @@ public class Hero : MonoBehaviour {
 	public delegate void WeaponFireDelegate();
 	public WeaponFireDelegate fireDelegate;
 
+	public GameObject explosion;
+
 	void Awake(){
 		//instantiate singleton
 		S = this; 
@@ -28,7 +31,8 @@ public class Hero : MonoBehaviour {
 
 	void Start(){
 		ClearWeapons ();
-		weapons [0].SetType (WeaponType.blaster);
+		//weapons [0].SetType (WeaponType.blaster);
+		weapon.SetType (WeaponType.blaster);
 	}
 
 	void Update () {
@@ -92,23 +96,21 @@ public class Hero : MonoBehaviour {
 
 	public void AbsorbPowerUp( GameObject go ) {
 		PowerUp pu = go.GetComponent<PowerUp>();
-		switch (pu.type) {
+		switch (pu.returnType()) {
 		case WeaponType.shield: // If it's the shield
 			shieldLevel++;
 			break;
-		default: // If it's any Weapon PowerUp
-			// Check the current weapon type
-			if (pu.type == weapons[0].type) {
-				// then increase the number of weapons of this type
-				/*Weapon w = GetEmptyWeaponSlot(); // Find an available weapon
+
+		default: 
+			//if (pu.returnType() == weapons[0].type) {
+				Weapon w = GetEmptyWeaponSlot(); // Find an available weapon
 				if (w != null) {
-					// Set it to pu.type
-					w.SetType(pu.type);
-				}*/
+					w.SetType(pu.returnType());
+				//}
 			} else {
-				// If this is a different weapon
-				//ClearWeapons();
-				//weapons[0].SetType(pu.type);
+				ClearWeapons();
+				weapon.SetType(pu.returnType());
+				//weapons[0].SetType(pu.returnType());
 			}
 			break;
 		}
@@ -116,18 +118,24 @@ public class Hero : MonoBehaviour {
 	}
 
 	Weapon GetEmptyWeaponSlot() {
-		for (int i=0; i<weapons.Length; i++) {
+		/*for (int i=0; i<weapons.Length; i++) {
 			if ( weapons[i].type == WeaponType.none ) {
 				return( weapons[i] );
 			}
 		}
-		return( null );
+		return( null );*/
+		if (weapon.type == WeaponType.none) {
+			return(weapon);
+		} else {
+			return(null);
+		}
 	}
 
 	void ClearWeapons() {
-		foreach (Weapon w in weapons) {
+		/*foreach (Weapon w in weapons) {
 			w.SetType(WeaponType.none);
-		}
+		}*/
+		weapon.SetType (WeaponType.none);
 	}
 
 	public float shieldLevel{
@@ -139,6 +147,7 @@ public class Hero : MonoBehaviour {
 
 			if (value < 0) {
 				Destroy (this.gameObject);
+				Instantiate (explosion, transform.position, transform.rotation);
 				Main.S.DelayedRestart (gameRestartDelay);
 			}
 		}

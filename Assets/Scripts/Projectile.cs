@@ -4,6 +4,7 @@ using System.Collections;
 public class Projectile : MonoBehaviour {
 	[SerializeField]
 	private WeaponType _type;
+
 	// This public property masks the field _type & takes action when it is set
 	public WeaponType type {
 		get {
@@ -14,14 +15,14 @@ public class Projectile : MonoBehaviour {
 		}
 	}
 
-	void FixedUpdate(){
-		CheckOffScreen ();
+	void Awake(){
+		InvokeRepeating ("CheckOffScreen", 2f, 2f);
 	}
 
 	public void SetType(WeaponType eType ) {
 		// Set the _type
 		_type = eType;
-		//WeaponDefinition def = Main.GetWeaponDefinition( _type );
+		WeaponDefinition def = Main.GetWeaponDefinition( _type );
 		//GetComponent<Renderer>().material.color = def.projectileColor;
 	}
 

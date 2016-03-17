@@ -6,7 +6,8 @@ public class PowerUp : MonoBehaviour {
 	public Vector2 driftMinMax = new Vector2(0.25f, 2);
 	public float lifeTime = 6f; 
 	public float fadeTime = 4f; 
-	public WeaponType type; 
+
+	private WeaponType type; 
 	private GameObject cube; 
 	private TextMesh letter; 
 	private Vector3 rotationPerSecond;
@@ -25,9 +26,11 @@ public class PowerUp : MonoBehaviour {
 
 		transform.rotation = Quaternion.identity;
 
-		rotationPerSecond = new Vector3( Random.Range(rotationMinMax.x,rotationMinMax.y),
+		rotationPerSecond = new Vector3( 
 			Random.Range(rotationMinMax.x,rotationMinMax.y),
-			Random.Range(rotationMinMax.x,rotationMinMax.y) );
+			Random.Range(rotationMinMax.x,rotationMinMax.y),
+			Random.Range(rotationMinMax.x,rotationMinMax.y) 
+		);
 		
 		InvokeRepeating( "CheckOffscreen", 2f, 2f );
 		birthTime = Time.time;
@@ -36,25 +39,27 @@ public class PowerUp : MonoBehaviour {
 	void Update () {
 		cube.transform.rotation = Quaternion.Euler( rotationPerSecond*Time.time );
 
-		float u = (Time.time - (birthTime+lifeTime)) / fadeTime;
-		// For lifeTime seconds, u will be <= 0. Then it will transition to 1
-		// over fadeTime seconds.
-		// If u >= 1, destroy this PowerUp
-		if (u >= 1) {
+		float fadeOut = (Time.time - (birthTime+lifeTime)) / fadeTime;
+
+		if (fadeOut >= 1) {
 			Destroy( this.gameObject );
 			return;
 		}
 		//determine the alpha value of the Cube & Letter
-		if (u>0) {
+		if (fadeOut > 0) {
 			Color c = cube.GetComponent<Renderer>().material.color;
-			c.a = 1f-u;
+			c.a = 1f-fadeOut;
 			cube.GetComponent<Renderer>().material.color = c;
 
 			//fade letter
 			c = letter.color;
-			c.a = 1f - (u*0.5f);
+			c.a = 1f - (fadeOut*0.5f);
 			letter.color = c;
 		}
+	}
+
+	public WeaponType returnType(){
+		return type;
 	}
 
 	// This SetType() differs from those on Weapon and Projectile
@@ -62,8 +67,8 @@ public class PowerUp : MonoBehaviour {
 		// Grab the WeaponDefinition from Main
 		WeaponDefinition def = Main.GetWeaponDefinition( wt );
 		// Set the color of the Cube child
-		//cube.GetComponent<Renderer>().material.color = def.color;
-		//letter.color = def.color; // We could colorize the letter too
+		cube.GetComponent<Renderer>().material.color = def.color;
+		letter.color = def.color; // We could colorize the letter too
 		letter.text = def.letter; // Set the letter that is shown
 		type = wt; // Finally actually set the type
 	}
@@ -74,10 +79,8 @@ public class PowerUp : MonoBehaviour {
 		Destroy( this.gameObject );
 	}
 	void CheckOffscreen() {
-		// If the PowerUp has drifted entirely off screen...
 		if ( Utils.ScreenBoundsCheck( cube.GetComponent<Collider>().bounds,
 			BoundsTest.offScreen) != Vector3.zero ) {
-			// ...then destroy this GameObject
 			Destroy( this.gameObject );
 		}
 	}

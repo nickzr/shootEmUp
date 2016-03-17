@@ -15,28 +15,29 @@ public enum WeaponType{
 public class WeaponDefinition{
 	public WeaponType type = WeaponType.none;
 	public string letter;
-	//public Color color = Color.white;
+	public Color color = Color.white;
 	public GameObject projectilePrefab;
 	//public Color projectileColor = Color.white;
 	public float damageOnHit = 0;
-	public float continousDamage = 0; //dps (laser)
+	//public float continousDamage = 0; //dps (laser)
 	public float delayBetweenShots = 0;
-	public float velocity = 20; //speed of projectiles
+	public float velocity = 50; //speed of projectiles
 }
 
 public class Weapon : MonoBehaviour {
 	public static Transform PROJECTILE_ANCHOR;
+	public new AudioSource audio;
+	public float increasedFireRate;
 
 	[SerializeField]
 	private WeaponType _type = WeaponType.none;
-	public WeaponDefinition def;
-	public GameObject _weapon;
-	public float lastShot;
-
-	public new AudioSource audio;
+	private WeaponDefinition def;
+	private GameObject _weapon;
+	private float lastShot;
 
 	void Awake(){
 		_weapon = transform.Find ("bazooka").gameObject;
+		increasedFireRate = 0.2f;
 	}
 
 	// Use this for initialization
@@ -74,11 +75,13 @@ public class Weapon : MonoBehaviour {
 	}
 	
 	public void Fire(){
-		if (!gameObject.activeInHierarchy)
-			return;
-		if (Time.time - lastShot < def.delayBetweenShots) {
+		if (!gameObject.activeInHierarchy) {
 			return;
 		}
+		if (Time.time - (lastShot - increasedFireRate) < def.delayBetweenShots) {
+			return;
+		}
+
 
 		Projectile p;
 
@@ -89,19 +92,21 @@ public class Weapon : MonoBehaviour {
 			p.GetComponent<Rigidbody> ().velocity = Vector3.up * def.velocity;
 			break;
 
-		/*case WeaponType.spread:
+		case WeaponType.spread:
+			audio.PlayOneShot (audio.clip);
 			p = MakeProjectile ();
 			p.GetComponent<Rigidbody> ().velocity = Vector3.up * def.velocity;
 			p = MakeProjectile ();
 			p.GetComponent<Rigidbody> ().velocity = new Vector3 (-0.2f, 0.9f, 0) * def.velocity;
 			p = MakeProjectile ();
 			p.GetComponent<Rigidbody> ().velocity = new Vector3 (0.2f, 0.9f, 0) * def.velocity;
-			break;*/
+			break;
 		}
 	}
 
 	public Projectile MakeProjectile(){
-		GameObject go = Instantiate (def.projectilePrefab) as GameObject;
+		GameObject go = Instantiate(Resources.Load("ProjectileHero")) as GameObject;
+		//GameObject go = Instantiate (def.projectilePrefab) as GameObject;
 		if (transform.parent.gameObject.tag == "Hero") {
 			go.tag = "ProjectileHero";
 			go.layer = LayerMask.NameToLayer ("ProjectileHero");
