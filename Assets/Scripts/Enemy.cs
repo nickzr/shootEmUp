@@ -5,17 +5,15 @@ public class Enemy : MonoBehaviour {
 	public float speed = 10f; 
 	public float fireRate = 0.3f; 
 	public float health = 2;
+	public float powerUpDropChance = 0.8f; 
 	public int score = 100;
-	public float powerUpDropChance = 1f;
+	public int showDamageForFrames; 
 
-	public int showDamageForFrames = 2;
-
-	public Color[] originalColors;
-	public Material[] materials;
-	public int remainingDamageFrames = 0;
-
-	public Bounds bounds; 
-	public Vector3 boundsCenterOffset; 
+	[HideInInspector]public int remainingDamageFrames = 0;
+	[HideInInspector]public Color[] originalColors;
+	[HideInInspector]public Material[] materials;
+	[HideInInspector]public Bounds bounds; 
+	[HideInInspector]public Vector3 boundsCenterOffset; 
 
 	public GameObject explosion;
 
@@ -27,12 +25,15 @@ public class Enemy : MonoBehaviour {
 			originalColors[i] = materials[i].color;
 		}
 
+		showDamageForFrames = 5;
+
 		InvokeRepeating( "CheckOffscreen", 0f, 2f );
 	}
 
 	void Update() {
 		Move();
 
+		//Inital amount of frames = showDamageForFrames
 		if (remainingDamageFrames>0) {
 			remainingDamageFrames--;
 			if (remainingDamageFrames == 0) {
@@ -82,26 +83,31 @@ public class Enemy : MonoBehaviour {
 		case "ProjectileHero":
 			Projectile p = go.GetComponent<Projectile> ();
 			Debug.Log ("Enemy: collision with projectile hero OK");
-			// Enemies don't take damage unless they're onscreen
-			// This stops the player from shooting them before they are visible
+
+			//Destroy projectile if enemy is not inside camera view of the player yet
 			bounds.center = transform.position + boundsCenterOffset;
 			if (bounds.extents == Vector3.zero ||
 			    Utils.ScreenBoundsCheck (bounds, BoundsTest.offScreen) != Vector3.zero) {
 				Destroy (go);
 				break;
 			}
-			// Hurt this Enemy
+
 			ShowDamage ();
-			Main.S.OnEnemyHit ();
-			// Get the damage amount from the Projectile.type & Main.W_DEFS
-			health -= Main.WeaponDictionary [p.type].damageOnHit;
+			health --;
+
+			if (health > 0) {
+				Main.S.OnEnemyHit ();
+			}
+
 			if (health <= 0) {
 				Debug.Log ("Enemy: died");
-				// Destroy this Enemy
+
 				Main.S.OnEnemyDeath (this);
 				Main.S.AddScore (score);
+
+				var goExplosion = Instantiate (explosion, transform.position, transform.rotation);
+				Destroy (goExplosion, 2);
 				Destroy (this.gameObject);
-				Instantiate (explosion, transform.position, transform.rotation);
 			}
 			Destroy (go);
 			break;
@@ -112,10 +118,12 @@ public class Enemy : MonoBehaviour {
 		foreach (Material m in materials) {
 			m.color = Color.red;
 		}
+		//How many frames to show the color
 		remainingDamageFrames = showDamageForFrames;
 	}
 
 	void UnShowDamage() {
+		//Called when remainingFrames = 0
 		for ( int i=0; i<materials.Length; i++ ) {
 			materials[i].color = originalColors[i];
 		}

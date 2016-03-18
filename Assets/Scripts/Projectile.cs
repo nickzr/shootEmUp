@@ -2,8 +2,7 @@
 using System.Collections;
 
 public class Projectile : MonoBehaviour {
-	[SerializeField]
-	private WeaponType _type;
+	[SerializeField]private WeaponType _type;
 
 	// This public property masks the field _type & takes action when it is set
 	public WeaponType type {

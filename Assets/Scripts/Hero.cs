@@ -5,22 +5,23 @@ public class Hero : MonoBehaviour {
 	public static Hero S;
 	public float gameRestartDelay = 2f;
 
-	[SerializeField]
-	private float _shieldLevel = 1;
-
 	//public Weapon[] weapons;
 	public Weapon weapon;
 
-	public float speed = 30;
-	public float rollMult = -45;
-	public float pitchMult = 30;
-
-	public Bounds bounds;
-
 	public delegate void WeaponFireDelegate();
 	public WeaponFireDelegate fireDelegate;
-
 	public GameObject explosion;
+
+	public float weaponDuration;
+	[HideInInspector]public GameObject lastTriggerGo = null;
+
+	[HideInInspector]public float speed = 30;
+	[HideInInspector]public float rollMult = -45;
+	[HideInInspector]public float pitchMult = 30;
+
+	[HideInInspector]public Bounds bounds;
+
+	[SerializeField]private float _shieldLevel = 1;
 
 	void Awake(){
 		//instantiate singleton
@@ -33,6 +34,14 @@ public class Hero : MonoBehaviour {
 		ClearWeapons ();
 		//weapons [0].SetType (WeaponType.blaster);
 		weapon.SetType (WeaponType.blaster);
+	}
+
+	void FixedUpdate(){
+		weaponDuration--;
+
+		if (weaponDuration == 0) {
+			weapon.SetType (WeaponType.blaster);
+		}
 	}
 
 	void Update () {
@@ -69,12 +78,13 @@ public class Hero : MonoBehaviour {
 			fireDelegate ();
 		}
 	}
-
-	public GameObject lastTriggerGo = null;
-
 	void OnTriggerEnter(Collider other){
 		GameObject go = Utils.FindTaggedParent (other.gameObject);
 		Debug.Log ("Hero: collision registered");
+
+		if (shieldLevel > 0) {
+			Main.S.OnHeroHit ();
+		}
 
 		if (go != null) {
 			if (go == lastTriggerGo) {
@@ -85,6 +95,17 @@ public class Hero : MonoBehaviour {
 			if (go.tag == "Enemy") {
 				Debug.Log ("Hero: hit by Enemy");
 				shieldLevel--;
+				if (shieldLevel >= 0) {
+					Main.S.SubstractShield (1);
+				}
+				Destroy (go);
+			}
+			if (go.tag == "Asteroid") {
+				Debug.Log ("Hero: hit by Asteroid");
+				shieldLevel--;
+				if (shieldLevel >= 0) {
+					Main.S.SubstractShield (1);
+				}
 				Destroy (go);
 			}else if (go.tag == "PowerUp") {
 				Debug.Log ("Hero: PowerUp absorbed");
@@ -102,6 +123,7 @@ public class Hero : MonoBehaviour {
 		switch (pu.returnType()) {
 		case WeaponType.shield: // If it's the shield
 			shieldLevel++;
+			Main.S.AddShield (1);
 			break;
 
 		default: 
@@ -118,6 +140,14 @@ public class Hero : MonoBehaviour {
 			break;
 		}
 		pu.AbsorbedBy( this.gameObject );
+
+		if (pu.returnType () == WeaponType.spread) {
+			SetWeaponDuration ();
+		}
+	}
+
+	void SetWeaponDuration(){
+		weaponDuration = 200f;
 	}
 
 	Weapon GetEmptyWeaponSlot() {
@@ -150,8 +180,9 @@ public class Hero : MonoBehaviour {
 
 			if (value < 0) {
 				Debug.Log ("Hero: died");
-				Destroy (this.gameObject);
+				Main.S.OnHeroDeath ();
 				Instantiate (explosion, transform.position, transform.rotation);
+				Destroy (this.gameObject);
 				Main.S.DelayedRestart (gameRestartDelay);
 			}
 		}

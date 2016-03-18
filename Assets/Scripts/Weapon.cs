@@ -5,9 +5,6 @@ public enum WeaponType{
 	none,
 	blaster,
 	spread,
-	phaser,
-	missile,
-	laser,
 	shield
 }
 
@@ -17,9 +14,7 @@ public class WeaponDefinition{
 	public string letter;
 	public Color color = Color.white;
 	public GameObject projectilePrefab;
-	//public Color projectileColor = Color.white;
 	public float damageOnHit = 0;
-	//public float continousDamage = 0; //dps (laser)
 	public float delayBetweenShots = 0;
 	public float velocity = 50; //speed of projectiles
 }
@@ -27,7 +22,7 @@ public class WeaponDefinition{
 public class Weapon : MonoBehaviour {
 	public static Transform PROJECTILE_ANCHOR;
 	public new AudioSource audio;
-	public float increasedFireRate;
+	public float increasedFireRate; //Use between 0.0-0.3 (0.4+ makes it shoot like a laser), default will be set to 0.2
 
 	[SerializeField]
 	private WeaponType _type = WeaponType.none;
@@ -40,7 +35,6 @@ public class Weapon : MonoBehaviour {
 		increasedFireRate = 0.2f;
 	}
 
-	// Use this for initialization
 	void Start () {
 		SetType (_type);
 
@@ -70,7 +64,6 @@ public class Weapon : MonoBehaviour {
 			this.gameObject.SetActive (true);
 		}
 		def = Main.GetWeaponDefinition (_type);
-		//_weapon.GetComponent<Renderer> ().material.color = def.color;
 		lastShot = 0;
 	}
 	
@@ -81,7 +74,6 @@ public class Weapon : MonoBehaviour {
 		if (Time.time - (lastShot - increasedFireRate) < def.delayBetweenShots) {
 			return;
 		}
-
 
 		Projectile p;
 
@@ -106,7 +98,7 @@ public class Weapon : MonoBehaviour {
 
 	public Projectile MakeProjectile(){
 		GameObject go = Instantiate(Resources.Load("ProjectileHero")) as GameObject;
-		//GameObject go = Instantiate (def.projectilePrefab) as GameObject;
+
 		if (transform.parent.gameObject.tag == "Hero") {
 			go.tag = "ProjectileHero";
 			go.layer = LayerMask.NameToLayer ("ProjectileHero");

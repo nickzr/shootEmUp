@@ -10,31 +10,32 @@ public class Main : MonoBehaviour {
 	public static Transform POWERUPS;
 	public static Dictionary<WeaponType, WeaponDefinition> WeaponDictionary;
 
+	public GUIText HackOnText;
+	public GUIText shieldsText;
+	public int shield;
+	public GUIText scoreText;
+	public int score;
+
 	public GameObject[] prefabEnemies;
-	public float enemySpawnPerSecond = 0.5f;
-	public float enemySpawnPadding = 1.5f;
-	public float enemySpawnRate;
+	[HideInInspector]public float enemySpawnPerSecond = 0.5f;
+	[HideInInspector]public float enemySpawnPadding = 1.5f;
+	[HideInInspector]public float enemySpawnRate;
 
 	public GameObject[] prefabAsteroids;
-	public float asteroidSpawnPerSecond = 0.5f;
-	public float asteroidSpawnPadding = 2.5f;
-	public float asteroidSpawnRate;
-
-	public GameObject leftBound;
-	public GameObject rightBound;
+	[HideInInspector]public float asteroidSpawnPerSecond = 0.5f;
+	[HideInInspector]public float asteroidSpawnPadding = 2.5f;
+	[HideInInspector]public float asteroidSpawnRate;
 
 	public AudioSource audioEnemyDeath;
 	public AudioSource audioEnemyHit;
-
 	public AudioSource audioAsteroidDestroyed;
-
-	public GUIText scoreText;
-	public int score;
+	public AudioSource audioHeroHit;
+	public AudioSource audioHeroDeath;
 
 	public WeaponDefinition[] weaponDefinitions;
 	public GameObject prefabPowerUp;
 	public WeaponType[] powerUpFrequency = new WeaponType[]{
-		WeaponType.blaster, WeaponType.blaster, WeaponType.spread, WeaponType.shield
+		WeaponType.blaster, WeaponType.spread, WeaponType.shield
 	};
 
 	private WeaponType[] activeWeaponTypes;
@@ -44,6 +45,8 @@ public class Main : MonoBehaviour {
 
 		Utils.SetCameraBounds (this.GetComponent<Camera>());
 
+		shield = (int) Hero.S.shieldLevel;
+		UpdateShield ();
 		score = 0;
 		UpdateScore ();
 
@@ -71,12 +74,16 @@ public class Main : MonoBehaviour {
 			WeaponDictionary [def.type] = def;
 		}
 	}
-
+		
 	void Start(){
 		activeWeaponTypes = new WeaponType[weaponDefinitions.Length];
 		for (int i = 0; i < weaponDefinitions.Length; i++) {
 			activeWeaponTypes [i] = weaponDefinitions [i].type;
 		}
+	}
+
+	void FixedUpdate(){
+		setHackOnText ();
 	}
 
 	public static WeaponDefinition GetWeaponDefinition(WeaponType wt){
@@ -131,25 +138,47 @@ public class Main : MonoBehaviour {
 		SceneManager.LoadScene ("Scene_0");
 	}
 
-	public void OnEnemyHit(){
-		audioEnemyHit.PlayOneShot (audioEnemyHit.clip);
-	}
-
 	public void AddScore(int newScoreValue){
 		score += newScoreValue;
 		UpdateScore ();
+	}
+
+	void setHackOnText(){
+		if (Hero.S.weaponDuration > 0 && Hero.S.weapon.type == WeaponType.spread) {
+			HackOnText.text = "HACK ACTIVATED FOR " + (Hero.S.weaponDuration / 100) + " SECONDS";
+		} else {
+			HackOnText.text = "";
+		}
 	}
 
 	void UpdateScore(){
 		scoreText.text = "Score: " + score;
 	}
 
+	void UpdateShield(){
+		shieldsText.text = "Shields: " + shield;
+	}
+
+	public void AddShield(int newShieldValue){
+		shield += newShieldValue;
+		UpdateShield ();
+	}
+
+	public void SubstractShield(int newShieldValue){
+		shield -= newShieldValue;
+		UpdateShield ();
+	}
+
+	public void OnEnemyHit(){
+		audioEnemyHit.PlayOneShot (audioEnemyHit.clip);
+	}
+
 	public void OnEnemyDeath(Enemy e){
 		audioEnemyDeath.PlayOneShot(audioEnemyDeath.clip);
 
 		if (Random.value < e.powerUpDropChance) {
-			int randomPU = Random.Range (0, powerUpFrequency.Length);
-			WeaponType puType = powerUpFrequency[randomPU];
+			int randomPU = Random.Range (0, powerUpFrequency.Length - 1);
+			WeaponType puType = powerUpFrequency [randomPU];
 
 			GameObject go = Instantiate (prefabPowerUp) as GameObject;
 			go.transform.parent = POWERUPS;
@@ -157,6 +186,14 @@ public class Main : MonoBehaviour {
 			pu.SetType (puType);
 			pu.transform.position = e.transform.position;
 		}
+	}
+
+	public void OnHeroHit(){
+		audioHeroHit.PlayOneShot (audioHeroHit.clip);
+	}
+
+	public void OnHeroDeath(){
+		audioHeroDeath.PlayOneShot(audioHeroDeath.clip);
 	}
 
 	public void OnAsteroidDestroyed(){

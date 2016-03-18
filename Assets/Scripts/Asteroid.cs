@@ -27,9 +27,10 @@ public class Asteroid : MonoBehaviour {
 			Main.S.AddScore (score);
 			Main.S.OnAsteroidDestroyed ();
 
-			Instantiate (explosion, transform.position, transform.rotation);
-
 			Destroy (go);
+
+			var goExplosion = Instantiate (explosion, transform.position, transform.rotation);
+			Destroy (goExplosion, 2);
 			Destroy (this.gameObject);
 		}
 	}

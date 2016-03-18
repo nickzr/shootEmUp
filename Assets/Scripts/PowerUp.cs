@@ -2,8 +2,8 @@
 using System.Collections;
 
 public class PowerUp : MonoBehaviour {
-	public Vector2 rotationMinMax = new Vector2(15, 90);
-	public Vector2 driftMinMax = new Vector2(0.25f, 2);
+	[HideInInspector]public Vector2 rotationMinMax = new Vector2(15, 90);
+	[HideInInspector]public Vector2 driftMinMax = new Vector2(0.25f, 2);
 	public float lifeTime = 6f; 
 	public float fadeTime = 4f; 
 
